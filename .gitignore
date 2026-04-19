@@ -1,0 +1,30 @@
+# ===== Sistema operacional =====
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.directory
+
+# ===== Editores =====
+# VS Code — mantemos versionado apenas se você decidir compartilhar configs
+.vscode/
+
+# JetBrains (IntelliJ, WebStorm, etc.)
+.idea/
+
+# Vim
+*.swp
+*.swo
+
+# ===== Arquivos temporários gerais =====
+*.log
+*.tmp
+*.bak

@@ -1,0 +1,25 @@
+# Índice de categorias de marker.
+# O JS lê este arquivo primeiro pra descobrir quais YAMLs carregar.
+# Adicionar categoria = adicionar entrada aqui + criar o YAML correspondente.
+#
+# Campos:
+#   id       — identificador interno usado no código (matches `marker.categoria`
+#              nos YAMLs e nas chaves de ícone em markers.js)
+#   nome     — label legível pro humano (pode aparecer em checkboxes de filtro)
+#   arquivo  — nome do YAML a carregar (o código prefixa `data/` automaticamente)
+
+- id: cidade-estado
+  nome: Cidades-estado
+  arquivo: cidades-estado.yaml
+
+- id: hidrografia
+  nome: Hidrografia
+  arquivo: hidrografia.yaml
+
+- id: terreno
+  nome: Terreno
+  arquivo: terreno.yaml
+
+- id: rota
+  nome: Rotas
+  arquivo: rotas.yaml

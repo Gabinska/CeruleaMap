@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>CeruleaMap — Calibração</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    /* Reset básico e tipografia */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background: #1a1a1a;
+      color: #e0e0e0;
+    }
+
+    /* Mapa ocupa a maior parte da tela */
+    #mapa {
+      flex: 1;
+      height: 100vh;
+      background: #0d2538;
+      cursor: crosshair;
+    }
+
+    /* Painel lateral */
+    #painel {
+      width: 320px;
+      padding: 20px;
+      background: #252525;
+      border-left: 1px solid #3a3a3a;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    h1 {
+      font-size: 18px;
+      color: #C8960C;
+      letter-spacing: 0.5px;
+    }
+
+    .secao {
+      background: #1a1a1a;
+      padding: 14px;
+      border-radius: 6px;
+      border: 1px solid #3a3a3a;
+    }
+
+    .rotulo {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    #coord-atual {
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 20px;
+      color: #fff;
+      word-break: break-all;
+      min-height: 28px;
+    }
+
+    #coord-atual.vazio {
+      color: #555;
+      font-style: italic;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background: #C8960C;
+      color: #1a1a1a;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: background 0.15s;
+    }
+
+    button:hover { background: #e0a810; }
+    button:disabled {
+      background: #3a3a3a;
+      color: #666;
+      cursor: not-allowed;
+    }
+
+    button.feedback {
+      background: #1A7A6E;
+      color: #fff;
+    }
+
+    #historico {
+      list-style: none;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    #historico li {
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 13px;
+      padding: 6px 10px;
+      border-bottom: 1px solid #2a2a2a;
+      cursor: pointer;
+      color: #aaa;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.1s;
+    }
+
+    #historico li:hover {
+      background: #2a2a2a;
+      color: #fff;
+    }
+
+    #historico li .indice {
+      color: #666;
+      font-size: 11px;
+    }
+
+    #historico li:last-child { border-bottom: none; }
+
+    #historico .vazio {
+      color: #555;
+      font-style: italic;
+      padding: 6px 10px;
+      font-family: inherit;
+      font-size: 12px;
+    }
+
+    .instrucao {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.5;
+    }
+
+    .instrucao strong { color: #aaa; }
+
+    /* Marcador customizado do ponto clicado */
+    .ponto-clicado {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #C8960C;
+      border: 2px solid #fff;
+      box-shadow: 0 0 8px rgba(200, 150, 12, 0.8);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="mapa"></div>
+
+  <aside id="painel">
+    <h1>🎯 Calibração de Coordenadas</h1>
+
+    <p class="instrucao">
+      Clique no mapa onde você quer colocar um marker.
+      A coordenada <strong>já é copiada</strong> pra área de transferência
+      no formato <strong>[y, x]</strong>, pronta pra colar no YAML.
+    </p>
+
+    <div class="secao">
+      <div class="rotulo">Última coordenada</div>
+      <div id="coord-atual" class="vazio">clique no mapa</div>
+      <button id="btn-copiar" disabled>Copiar</button>
+    </div>
+
+    <div class="secao">
+      <div class="rotulo">Histórico (últimas 10)</div>
+      <ul id="historico">
+        <li class="vazio">nada por aqui ainda</li>
+      </ul>
+    </div>
+
+    <p class="instrucao">
+      <strong>Dica:</strong> clique num item do histórico pra copiar essa coordenada.
+      O mapa mostra um ponto dourado onde você clicou.
+    </p>
+  </aside>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    // ============================================================
+    // Configuração idêntica à do index.html — pra coordenadas
+    // extraídas aqui serem diretamente utilizáveis lá.
+    // ============================================================
+    const LARGURA = 3000;
+    const ALTURA = 4000;
+    const limites = [[0, 0], [ALTURA, LARGURA]];
+
+    const mapa = L.map('mapa', {
+      crs: L.CRS.Simple,
+      minZoom: -5,
+      maxZoom: 2,
+      zoomSnap: 0,
+      zoomDelta: 0.5,
+      maxBounds: limites,
+      maxBoundsViscosity: 1.0,
+      attributionControl: false
+    });
+
+    L.imageOverlay('assets/mapa-cerulea_names.png', limites).addTo(mapa);
+    mapa.fitBounds(limites);
+    mapa.setMinZoom(mapa.getZoom());
+
+    // Recalcular zoom mínimo ao redimensionar (mesmo pattern do index)
+    mapa.on('resize', () => {
+      const zoomAtual = mapa.getZoom();
+      const centroAtual = mapa.getCenter();
+      mapa.setMinZoom(-5);
+      const zoomIdeal = mapa.getBoundsZoom(limites);
+      mapa.setMinZoom(zoomIdeal);
+      if (zoomAtual < zoomIdeal) {
+        mapa.setView(centroAtual, zoomIdeal);
+      }
+    });
+
+    // ============================================================
+    // Lógica de captura de cliques
+    // ============================================================
+    const coordAtualEl = document.getElementById('coord-atual');
+    const btnCopiar = document.getElementById('btn-copiar');
+    const historicoEl = document.getElementById('historico');
+
+    let ultimaCoord = null;
+    const historico = [];
+    let marcadorAtual = null;
+
+    // Ícone customizado pro ponto visual
+    const iconePonto = L.divIcon({
+      className: '',
+      html: '<div class="ponto-clicado"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    });
+
+    mapa.on('click', (e) => {
+      // No CRS.Simple, latlng.lat = y em pixels, latlng.lng = x em pixels.
+      // Arredondar pra inteiros: precisão de sub-pixel é ruído.
+      const y = Math.round(e.latlng.lat);
+      const x = Math.round(e.latlng.lng);
+      const coord = [y, x];
+      const texto = `[${y}, ${x}]`;
+
+      ultimaCoord = texto;
+      coordAtualEl.textContent = texto;
+      coordAtualEl.classList.remove('vazio');
+      btnCopiar.disabled = false;
+
+      // Adiciona ao histórico (no topo, limitado a 10)
+      historico.unshift(texto);
+      if (historico.length > 10) historico.pop();
+      renderizarHistorico();
+
+      // Marcador visual no ponto clicado
+      if (marcadorAtual) mapa.removeLayer(marcadorAtual);
+      marcadorAtual = L.marker([y, x], { icon: iconePonto }).addTo(mapa);
+
+      // Copia automaticamente pra área de transferência
+      copiarTexto(texto);
+    });
+
+    function renderizarHistorico() {
+      if (historico.length === 0) {
+        historicoEl.innerHTML = '<li class="vazio">nada por aqui ainda</li>';
+        return;
+      }
+      historicoEl.innerHTML = historico
+        .map((coord, i) => `
+          <li data-coord="${coord}">
+            <span>${coord}</span>
+            <span class="indice">#${i + 1}</span>
+          </li>
+        `)
+        .join('');
+
+      // Clique em item do histórico copia essa coordenada
+      historicoEl.querySelectorAll('li').forEach(li => {
+        li.addEventListener('click', () => {
+          copiarTexto(li.dataset.coord);
+        });
+      });
+    }
+
+    // ============================================================
+    // Cópia pra área de transferência
+    // ============================================================
+    btnCopiar.addEventListener('click', () => {
+      if (ultimaCoord) copiarTexto(ultimaCoord);
+    });
+
+    function copiarTexto(texto) {
+      navigator.clipboard.writeText(texto).then(() => {
+        btnCopiar.textContent = '✓ Copiado!';
+        btnCopiar.classList.add('feedback');
+        setTimeout(() => {
+          btnCopiar.textContent = 'Copiar';
+          btnCopiar.classList.remove('feedback');
+        }, 1200);
+      }).catch(err => {
+        console.error('Falha ao copiar:', err);
+        alert('Não consegui copiar automaticamente. Selecione e copie manualmente: ' + texto);
+      });
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,158 @@
+# Cidades-estado de Cerulea — as 14 sedes de batalhão da Força Celeste.
+# Dados consolidados do compendium de campanha (Cerulea_27-03-2026).
+# Campo `capital: true` presente apenas nas capitais de província.
+
+# === CERULEA DO NORTE ===
+
+- nome: Lazus
+  categoria: cidade-estado
+  capital: true
+  provincia: Cerulea do Norte
+  governo: Monarquia hereditária
+  batalhao: "1º — Estrategistas"
+  comandante: Norin
+  populacao: 48000
+  coordenadas: [1720, 2187]
+  wiki: Províncias/Cerulea-do-Norte/Lazus
+
+- nome: Agnen
+  categoria: cidade-estado
+  provincia: Cerulea do Norte
+  governo: Monarquia naval
+  batalhao: "2º — Desbravadores"
+  comandante: Cap. Alga'Zul
+  populacao: 23000
+  coordenadas: [2214, 1893]
+  wiki: Províncias/Cerulea-do-Norte/Agnen
+
+- nome: Estóssia
+  categoria: cidade-estado
+  provincia: Cerulea do Norte
+  governo: República
+  batalhao: "3º — Pacificadores"
+  comandante: Sven
+  populacao: 19000
+  coordenadas: [2550, 2081]
+  wiki: Províncias/Cerulea-do-Norte/Estóssia
+
+- nome: Miras
+  categoria: cidade-estado
+  provincia: Cerulea do Norte
+  governo: Monarquia
+  batalhao: "4º — Vingadores"
+  comandante: Arador Mallen
+  populacao: 28000
+  coordenadas: [2555, 1297]
+  wiki: Províncias/Cerulea-do-Norte/Miras
+
+- nome: Teosia
+  categoria: cidade-estado
+  provincia: Cerulea do Norte
+  governo: Teocracia
+  batalhao: "5º — Preservadores"
+  comandante: Tordill
+  populacao: 21000
+  coordenadas: [2889, 1892]
+  wiki: Províncias/Cerulea-do-Norte/Teosia
+
+# === EMPÓDIA ===
+
+- nome: Magnea
+  categoria: cidade-estado
+  capital: true
+  provincia: Empódia
+  governo: República
+  batalhao: "6º — Sentinelas"
+  comandante: Fey
+  populacao: 34000
+  coordenadas: [3552, 2674]
+  wiki: Províncias/Empódia/Magnea
+
+- nome: Endens
+  categoria: cidade-estado
+  provincia: Empódia
+  governo: Monarquia
+  batalhao: "7º — Escavadores"
+  comandante: Rori
+  populacao: 13000
+  coordenadas: [3041, 2184]
+  wiki: Províncias/Empódia/Endens
+
+- nome: Orinth
+  categoria: cidade-estado
+  provincia: Empódia
+  governo: República
+  batalhao: "10º — Comissários"
+  comandante: Gwendessa
+  populacao: 14000
+  coordenadas: [2881, 2479]
+  wiki: Províncias/Empódia/Orinth
+
+- nome: Ialos
+  categoria: cidade-estado
+  provincia: Empódia
+  governo: Aristocracia
+  batalhao: "8º — Poetas"
+  comandante: Laerrorn Celair
+  populacao: 7000
+  coordenadas: [2382, 2386]
+  wiki: Províncias/Empódia/Ialos
+
+- nome: Mantar
+  categoria: cidade-estado
+  provincia: Empódia
+  governo: Teocracia
+  batalhao: "9º — Visionários"
+  comandante: Cahir
+  populacao: 9000
+  coordenadas: [2218, 2678]
+  wiki: Províncias/Empódia/Mantar
+
+# === DÁKRY ===
+
+- nome: Tegeas
+  categoria: cidade-estado
+  capital: true
+  provincia: Dákry
+  governo: Teocracia
+  batalhao: "11º — Acólitos"
+  comandante: Aery
+  populacao: 18000
+  coordenadas: [3721, 1195]
+  wiki: Províncias/Dákry/Tegeas
+
+# === ILHA DAS CORRENTES ===
+
+- nome: Exônia
+  categoria: cidade-estado
+  capital: true
+  provincia: Ilha das Correntes
+  governo: República
+  batalhao: "12º — Libertadores"
+  comandante: Dux
+  populacao: 31000
+  coordenadas: [997, 1293]
+  wiki: Províncias/Ilha-das-Correntes/Exônia
+
+- nome: Forte Elpída
+  categoria: cidade-estado
+  provincia: Ilha das Correntes
+  governo: Democracia
+  batalhao: "13º — Defensores"
+  comandante: Nazara
+  populacao: 11000
+  coordenadas: [1174, 524]
+  wiki: Províncias/Ilha-das-Correntes/Forte-Elpída
+
+# === CERULEA DO SUL ===
+
+- nome: Vedon
+  categoria: cidade-estado
+  capital: true
+  provincia: Cerulea do Sul
+  governo: Autocracia
+  batalhao: "14º — Apotecários"
+  comandante: Dra. Helen
+  populacao: 26000
+  coordenadas: [524, 2564]
+  wiki: Províncias/Cerulea-do-Sul/Vedon

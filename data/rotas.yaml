@@ -1,0 +1,9 @@
+# Rotas de Cerulea.
+# V1: apenas a Rota Serena (rota marítima entre Lazus e Exônia).
+# Futuro (V2): estradas terrestres.
+# Convenção atual: ponto único ancorado no texto do label no mapa.
+
+- nome: Rota Serena
+  categoria: rota
+  coordenadas: [1474, 1829]
+  wiki: Geografia/Rotas/Rota-Serena

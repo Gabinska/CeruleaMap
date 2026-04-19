@@ -1,0 +1,27 @@
+# Hidrografia de Cerulea — rios, lagos e nascentes.
+# Coordenadas ancoradas no texto do label no mapa.
+
+- nome: Lagoa Safina
+  categoria: hidrografia
+  coordenadas: [3295, 929]
+  wiki: Geografia/Hidrografia/Lagoa-Safina
+
+- nome: Rio Nharos
+  categoria: hidrografia
+  coordenadas: [3641, 2163]
+  wiki: Geografia/Hidrografia/Rio-Nharos
+
+- nome: Rio Dourado
+  categoria: hidrografia
+  coordenadas: [2682, 1639]
+  wiki: Geografia/Hidrografia/Rio-Dourado
+
+- nome: Rio Velanthir
+  categoria: hidrografia
+  coordenadas: [1491, 2661]
+  wiki: Geografia/Hidrografia/Rio-Velanthir
+
+- nome: Nascente de Y'shar
+  categoria: hidrografia
+  coordenadas: [304, 2560]
+  wiki: Geografia/Hidrografia/Nascente-de-Y-shar

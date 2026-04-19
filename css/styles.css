@@ -1,0 +1,24 @@
+/* =====================================================
+   Markers
+   ===================================================== */
+
+/* --- Escudo (compartilhado entre capital, cidade-estado e povoado) --- */
+.marker-escudo-externo { fill: #5a3f1a; stroke: #5a3f1a; }
+.marker-escudo-interno { fill: #e2b037; stroke: #5a3f1a; }
+
+/* --- Ornamentos exclusivos --- */
+.marker-coroa   { fill: #e2b037; stroke: #5a3f1a; }
+.marker-simbolo { fill: #5a3f1a; stroke: none; }
+
+/* --- Hidrografia --- */
+.marker-gota-fill  { fill: #1E4A8C; stroke: #0D2F5C; }
+.marker-gota-shine { fill: #FFFFFF; stroke: none; }
+
+/* --- Terreno --- */
+.marker-montanha-fill { fill: #a06464; stroke: #4e2222; }
+.marker-montanha-neve { fill: #FFFFFF; stroke: none; }
+
+/* --- Rota --- */
+.marker-roda-aro   { fill: #8B3A3A; stroke: #4A1F1F; }
+.marker-roda-raios { fill: none; stroke: #4A1F1F; stroke-linecap: round; }
+.marker-roda-cubo  { fill: #8B3A3A; stroke: #4A1F1F; }

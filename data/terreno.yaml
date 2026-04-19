@@ -1,0 +1,32 @@
+# Terreno de Cerulea — florestas, desertos, montanhas, planícies, dunas.
+# Coordenadas ancoradas no texto do label no mapa.
+
+- nome: Cordilheira Môn
+  categoria: terreno
+  coordenadas: [3324, 2412]
+  wiki: Geografia/Terreno/Cordilheira-Môn
+
+- nome: Floresta do Silêncio
+  categoria: terreno
+  coordenadas: [2716, 1014]
+  wiki: Geografia/Terreno/Floresta-do-Silêncio
+
+- nome: Deserto de Thal'Dur
+  categoria: terreno
+  coordenadas: [325, 1833]
+  wiki: Geografia/Terreno/Deserto-de-Thal-Dur
+
+- nome: Dunas do Esquecimento
+  categoria: terreno
+  coordenadas: [1445, 655]
+  wiki: Geografia/Terreno/Dunas-do-Esquecimento
+
+- nome: Montanhas da Esperança
+  categoria: terreno
+  coordenadas: [1293, 781]
+  wiki: Geografia/Terreno/Montanhas-da-Esperança
+
+- nome: Planícies Desoladas
+  categoria: terreno
+  coordenadas: [1850, 1271]
+  wiki: Geografia/Terreno/Planícies-Desoladas

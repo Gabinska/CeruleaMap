@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cerulea • Mapa Interativo</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+  <!-- Seu CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    #mapa {
+      height: 100vh;
+      width: 100vw;
+      background: #7a9ea0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="mapa"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- js-yaml (parser de YAML) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+
+  <!-- Seus markers -->
+  <script src="js/markers.js"></script>
+
+  <script>
+    const largura = 3000;
+    const altura = 4000;
+    const limites = [[0, 0], [altura, largura]];
+
+    const mapa = L.map('mapa', {
+      crs: L.CRS.Simple,
+      minZoom: -5,
+      maxZoom: 2,
+      zoomSnap: 0,
+      zoomDelta: 0.5,
+      maxBounds: limites,
+      maxBoundsViscosity: 1.0
+    });
+
+    // Imagem do mapa
+    L.imageOverlay('assets/mapa-cerulea.png', limites).addTo(mapa);
+
+    // Enquadramento inicial
+    mapa.fitBounds(limites);
+    mapa.setMinZoom(mapa.getZoom());
+
+    // Ajuste dinâmico ao redimensionar
+    function recalcularMinZoom() {
+      const zoomAtual = mapa.getZoom();
+      const centroAtual = mapa.getCenter();
+
+      mapa.setMinZoom(-5);
+      const zoomIdeal = mapa.getBoundsZoom(limites);
+      mapa.setMinZoom(zoomIdeal);
+
+      if (zoomAtual < zoomIdeal) {
+        mapa.setView(centroAtual, zoomIdeal);
+      }
+    }
+
+    mapa.on('resize', recalcularMinZoom);
+
+    // Baixa um YAML e devolve o objeto JS parseado.
+    async function carregarYAML(caminho) {
+      const resposta = await fetch(caminho);
+      if (!resposta.ok) {
+        throw new Error(`HTTP ${resposta.status} ao buscar ${caminho}`);
+      }
+      const texto = await resposta.text();
+      return jsyaml.load(texto);
+    }
+
+    // Carrega uma categoria e devolve { id, markers }.
+    async function carregarCategoria(categoria) {
+      const markers = await carregarYAML(`data/${categoria.arquivo}`);
+      return { id: categoria.id, markers };
+    }
+
+    const grupos = {};
+
+
+    const WIKI_BASE = 'https://gabinska.github.io/Cerulea/';
+
+    function montarPopup(m) {
+      return `
+        <h3>${m.nome}</h3>
+        ${m.capital ? `<p class="popup-capital">Capital</p>` : ''}
+        ${m.provincia ? `<p><strong>Província:</strong> ${m.provincia}</p>` : ''}
+        ${m.governo ? `<p><strong>Governo:</strong> ${m.governo}</p>` : ''}
+        ${m.batalhao ? `<p><strong>Batalhão:</strong> ${m.batalhao}</p>` : ''}
+        ${m.comandante ? `<p><strong>Comandante:</strong> ${m.comandante}</p>` : ''}
+        ${m.populacao ? `<p><strong>População:</strong> ${m.populacao.toLocaleString('pt-BR')}</p>` : ''}
+        ${m.wiki ? `<p><a href="${WIKI_BASE}${m.wiki}" target="_blank">Ler na wiki</a></p>` : ''}
+      `;
+    }
+
+    // Orquestra tudo: lê o índice, carrega categorias em paralelo, cria markers.
+    async function carregarTudo() {
+          try {
+            const categorias = await carregarYAML('data/categorias.yaml');
+            const resultados = await Promise.all(
+              categorias.map(cat => carregarCategoria(cat))
+            );
+
+            for (const { id, markers } of resultados) {
+              const grupo = L.layerGroup();
+              for (const m of markers) {
+                const icone = getIcone(m);
+                if (!icone) {
+                  console.warn(`Sem ícone registrado para marker "${m.nome}" (categoria "${m.categoria}")`);
+                  continue;
+                }
+                L.marker(m.coordenadas, { icon: icone })
+                  .bindPopup(montarPopup(m))
+                  .addTo(grupo);
+              }
+              grupo.addTo(mapa);
+              grupos[id] = grupo;
+            }
+          } catch (erro) {
+            console.error('Falha ao carregar markers:', erro);
+          }
+        }
+
+        carregarTudo();
+  </script>
+</body>
+</html>
