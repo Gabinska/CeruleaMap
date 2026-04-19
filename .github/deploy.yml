@@ -1,0 +1,47 @@
+# Workflow que publica o site no GitHub Pages a cada push na main.
+# Como o projeto é 100% estático (HTML + CSS + JS + YAML + PNG),
+# não há build step — apenas empacotamos os arquivos e publicamos.
+
+name: Deploy to GitHub Pages
+
+on:
+  # Dispara em push pra main
+  push:
+    branches: [main]
+  # Permite rodar manualmente pela aba Actions (útil pra redeployar sem commit)
+  workflow_dispatch:
+
+# Permissões necessárias pro Actions publicar no Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Impede deploys concorrentes: se dois pushes rápidos rolarem,
+# só o mais recente chega até o fim.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@v4
+
+      - name: Empacotar o site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Publica tudo da raiz — o index.html e as pastas de assets, css, js, data
+          path: '.'
+
+      - name: Publicar no Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
