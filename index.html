@@ -230,6 +230,49 @@
       painel.addTo(mapa);
     }
 
+    // =============================================================
+    // DEEP-LINK POR URL (?marker=nome)
+    // =============================================================
+
+    // Normaliza um nome pra comparação: minúsculo, sem acento, hífen
+    // no lugar de espaços e apóstrofes. "Forte Elpída" → "forte-elpida".
+    // "Nascente de Y'shar" → "nascente-de-y-shar".
+    function normalizar(texto) {
+      return texto
+        .toLowerCase()
+        .normalize('NFD')                 // separa letra e acento
+        .replace(/[\u0300-\u036f]/g, '')  // remove os acentos separados
+        .replace(/['']/g, '-')             // apóstrofes viram hífen
+        .replace(/\s+/g, '-');             // espaços viram hífen
+    }
+
+    // Coleta todos os markers criados, indexados pelo nome normalizado.
+    // Preenchido em carregarTudo(), lido em abrirMarkerDaURL().
+    const markersPorNome = {};
+
+    // Lê ?marker=xxx da URL atual. Devolve o nome normalizado ou null.
+    function lerMarkerDaURL() {
+      const params = new URLSearchParams(window.location.search);
+      const nome = params.get('marker');
+      return nome ? normalizar(nome) : null;
+    }
+
+    // Se a URL tem ?marker=xxx válido, centraliza o mapa nele e abre
+    // o popup. Se não tem, ou o nome não existe, não faz nada além de
+    // (eventualmente) avisar no console.
+    function abrirMarkerDaURL() {
+      const alvo = lerMarkerDaURL();
+      if (!alvo) return;
+
+      const marker = markersPorNome[alvo];
+      if (!marker) {
+        console.warn(`Marker "${alvo}" não encontrado.`);
+        return;
+      }
+
+      mapa.setView(marker.getLatLng(), -1);
+      marker.openPopup();
+    }
 
     // =============================================================
     // ORQUESTRAÇÃO
@@ -252,15 +295,17 @@
               console.warn(`Sem ícone registrado para marker "${m.nome}" (categoria "${m.categoria}")`);
               continue;
             }
-            L.marker(m.coordenadas, { icon: icone })
+            const marker = L.marker(m.coordenadas, { icon: icone })
               .bindPopup(montarPopup(m))
               .addTo(grupo);
+            markersPorNome[normalizar(m.nome)] = marker;
           }
           grupo.addTo(mapa);
           grupos[id] = grupo;
         }
 
         construirFiltros(categorias);
+        abrirMarkerDaURL();
       } catch (erro) {
         console.error('Falha ao carregar markers:', erro);
       }
