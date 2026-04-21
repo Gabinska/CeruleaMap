@@ -292,3 +292,165 @@
   color: #8b6914 !important;
   background: transparent !important;
 }
+
+/* =====================================================
+   Painel de busca
+   ===================================================== */
+
+/* Container externo — mesma "caixa pergaminho" do painel de filtros */
+.painel-busca {
+  background: rgba(245, 235, 215, 0.95);
+  border: 2px solid #5a3f1a;
+  border-radius: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #3a2810;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: inline-block;
+}
+
+/* Botão de lupa (estado fechado) */
+.painel-busca-toggle {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #3a2810;
+}
+
+.painel-busca-toggle:hover {
+  background: rgba(139, 105, 20, 0.15);
+}
+
+.painel-busca-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Conteúdo expandido (input + lista de resultados) */
+.painel-busca-conteudo {
+  display: none;
+  min-width: 260px;
+}
+
+.painel-busca.aberto .painel-busca-toggle {
+  display: none;
+}
+
+.painel-busca.aberto .painel-busca-conteudo {
+  display: block;
+}
+
+/* Linha do input — contém o campo de texto e o × de fechar */
+.painel-busca-linha {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+}
+
+.painel-busca-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  color: #3a2810;
+  padding: 4px 6px;
+  outline: none;
+}
+
+.painel-busca-input::placeholder {
+  color: #8a7050;
+  font-style: italic;
+}
+
+.painel-busca-fechar {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  color: #5a3f1a;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.painel-busca-fechar:hover {
+  color: #8b6914;
+}
+
+/* Lista de resultados */
+.painel-busca-resultados {
+  border-top: 1px solid #5a3f1a;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.painel-busca-resultados:empty {
+  display: none;  /* esconde a borda quando não há resultados */
+}
+
+.resultado-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(90, 63, 26, 0.15);
+  font-size: 14px;
+}
+
+.resultado-item:last-child {
+  border-bottom: none;
+}
+
+.resultado-item:hover,
+.resultado-item.destacado {
+  background: rgba(139, 105, 20, 0.15);
+  color: #5a3f1a;
+}
+
+.resultado-item .icone-categoria {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.resultado-item .icone-categoria svg {
+  width: 100%;
+  height: 100%;
+}
+
+.resultado-item .nome {
+  flex: 1;
+}
+
+.resultado-item .categoria-label {
+  font-size: 11px;
+  color: #8a7050;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Rodapé "e mais N resultados" */
+.resultado-mais {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #8a7050;
+  font-style: italic;
+  text-align: center;
+  border-top: 1px solid rgba(90, 63, 26, 0.15);
+}

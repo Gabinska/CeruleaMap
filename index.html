@@ -311,6 +311,199 @@
       marker.fire('click');
     }
 
+    // =============================================================
+    // BUSCA
+    // =============================================================
+
+    // SVG da lupa — ícone do botão de busca colapsado.
+    const svgLupa = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"/>
+      <path d="M21 21l-4.35-4.35"/>
+    </svg>`;
+
+    // Índice de busca: lista achatada com todos os markers e seus
+    // nomes normalizados. Preenchido em carregarTudo().
+    const indiceBusca = [];
+
+    // Rótulos legíveis por categoria (pra mostrar na lista de resultados).
+    const rotulosCategoria = {
+      'cidade-estado': 'Cidade',
+      'hidrografia': 'Hidrografia',
+      'terreno': 'Terreno',
+      'rota': 'Rota',
+      'povoado': 'Povoado',
+    };
+
+    // Limite de resultados mostrados na lista.
+    const LIMITE_RESULTADOS = 5;
+
+    // Procura markers cujo nome (normalizado) contém o termo digitado.
+    function buscarMarkers(termo) {
+      const alvo = normalizar(termo.trim());
+      if (!alvo) return [];
+      return indiceBusca.filter(item => item.nomeNormalizado.includes(alvo));
+    }
+
+    // Monta o painel de busca colapsável no canto superior-direito.
+    function construirBusca() {
+      const painel = L.control({ position: 'topright' });
+
+      painel.onAdd = function() {
+        const div = L.DomUtil.create('div', 'painel-busca');
+
+        // --- Botão da lupa (estado fechado) ---
+        const toggle = document.createElement('button');
+        toggle.className = 'painel-busca-toggle';
+        toggle.title = 'Buscar';
+        toggle.setAttribute('aria-label', 'Abrir busca');
+        toggle.innerHTML = svgLupa;
+        div.appendChild(toggle);
+
+        // --- Conteúdo expandido ---
+        const conteudo = document.createElement('div');
+        conteudo.className = 'painel-busca-conteudo';
+
+        // Linha do input
+        const linha = document.createElement('div');
+        linha.className = 'painel-busca-linha';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'painel-busca-input';
+        input.placeholder = 'Buscar lugar...';
+
+        const fechar = document.createElement('button');
+        fechar.className = 'painel-busca-fechar';
+        fechar.textContent = '×';
+        fechar.title = 'Fechar';
+        fechar.setAttribute('aria-label', 'Fechar busca');
+
+        linha.append(input, fechar);
+        conteudo.appendChild(linha);
+
+        // Lista de resultados
+        const resultados = document.createElement('div');
+        resultados.className = 'painel-busca-resultados';
+        conteudo.appendChild(resultados);
+
+        div.appendChild(conteudo);
+
+        // --- Comportamento ---
+
+        // Abrir pelo ícone da lupa: expande e foca o input
+        toggle.addEventListener('click', () => {
+          div.classList.add('aberto');
+          input.focus();
+        });
+
+        // Fechar: esvazia campo e lista, colapsa o painel
+        function fecharPainel() {
+          input.value = '';
+          resultados.innerHTML = '';
+          div.classList.remove('aberto');
+        }
+        fechar.addEventListener('click', fecharPainel);
+
+        // Guarda o índice do item destacado via teclado (-1 = nenhum)
+        let indiceDestacado = -1;
+
+        // Renderiza a lista de resultados a partir do texto atual
+        function renderizarResultados() {
+          const termo = input.value;
+          resultados.innerHTML = '';
+          indiceDestacado = -1;
+
+          if (!termo.trim()) return;
+
+          const achados = buscarMarkers(termo);
+          const mostrados = achados.slice(0, LIMITE_RESULTADOS);
+
+          mostrados.forEach((item, i) => {
+            const linha = document.createElement('div');
+            linha.className = 'resultado-item';
+            linha.dataset.indice = i;
+
+            const icone = document.createElement('span');
+            icone.className = 'icone-categoria';
+            icone.innerHTML = getIconeMiniatura(item.categoria);
+
+            const nome = document.createElement('span');
+            nome.className = 'nome';
+            nome.textContent = item.nome;
+
+            const categoriaLabel = document.createElement('span');
+            categoriaLabel.className = 'categoria-label';
+            categoriaLabel.textContent = rotulosCategoria[item.categoria] || item.categoria;
+
+            linha.append(icone, nome, categoriaLabel);
+            linha.addEventListener('click', () => selecionar(item));
+            resultados.appendChild(linha);
+          });
+
+          // Rodapé "e mais N resultados"
+          const restantes = achados.length - mostrados.length;
+          if (restantes > 0) {
+            const rodape = document.createElement('div');
+            rodape.className = 'resultado-mais';
+            rodape.textContent = `e mais ${restantes} resultado${restantes > 1 ? 's' : ''}`;
+            resultados.appendChild(rodape);
+          }
+        }
+
+        // Ação quando um resultado é escolhido (clique ou Enter)
+        function selecionar(item) {
+          fecharPainel();
+          mapa.setView(item.marker.getLatLng(), -1);
+          item.marker.fire('click');
+        }
+
+        // Atualiza visualmente qual item está destacado pelo teclado
+        function atualizarDestaque() {
+          const itens = resultados.querySelectorAll('.resultado-item');
+          itens.forEach((el, i) => {
+            el.classList.toggle('destacado', i === indiceDestacado);
+          });
+        }
+
+        // Input digitado → atualiza a lista
+        input.addEventListener('input', renderizarResultados);
+
+        // Navegação por teclado
+        input.addEventListener('keydown', (e) => {
+          const itens = resultados.querySelectorAll('.resultado-item');
+
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (itens.length === 0) return;
+            indiceDestacado = Math.min(indiceDestacado + 1, itens.length - 1);
+            atualizarDestaque();
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (itens.length === 0) return;
+            indiceDestacado = Math.max(indiceDestacado - 1, 0);
+            atualizarDestaque();
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const alvo = indiceDestacado >= 0 ? indiceDestacado : 0;
+            if (itens[alvo]) {
+              const termo = input.value;
+              const achados = buscarMarkers(termo);
+              if (achados[alvo]) selecionar(achados[alvo]);
+            }
+          } else if (e.key === 'Escape') {
+            fecharPainel();
+          }
+        });
+
+        // Impede que cliques/scrolls no painel afetem o mapa
+        L.DomEvent.disableClickPropagation(div);
+        L.DomEvent.disableScrollPropagation(div);
+
+        return div;
+      };
+
+      painel.addTo(mapa);
+    }
 
     // =============================================================
     // ORQUESTRAÇÃO
@@ -335,8 +528,6 @@
             }
             const marker = L.marker(m.coordenadas, { icon: icone }).addTo(grupo);
 
-            // Em vez de bindPopup (offset fixo), criamos o popup no
-            // clique calculando a melhor direção pra cada posição.
             marker.on('click', () => {
               const offset = calcularOffsetPopup(marker);
               L.popup({ offset, autoPan: false })
@@ -346,12 +537,19 @@
             });
 
             markersPorNome[normalizar(m.nome)] = marker;
+            indiceBusca.push({
+              nome: m.nome,
+              nomeNormalizado: normalizar(m.nome),
+              categoria: m.categoria,
+              marker: marker,
+            });
           }
           grupo.addTo(mapa);
           grupos[id] = grupo;
         }
 
         construirFiltros(categorias);
+        construirBusca();
         abrirMarkerDaURL();
       } catch (erro) {
         console.error('Falha ao carregar markers:', erro);
