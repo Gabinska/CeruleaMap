@@ -128,15 +128,12 @@
       `;
     }
 
-    // Decide em que direção o popup deve abrir baseado na posição
-    // do marker na viewport atual. Retorna um L.point (offset) que
-    // posiciona o popup no lado com mais espaço livre.
-    function calcularOffsetPopup(marker) {
-      // Valores vindos do CSS. Pior caso: popup no tamanho máximo.
-      const larguraPopup = 300;
-      const alturaPopup = 320;
-      const margem = 20;  // distância mínima das bordas da viewport
-
+    // Calcula o offset vertical/horizontal de um popup dado seu tamanho
+    // real (ou estimado). Separa o cálculo em uma função pura pra poder
+    // chamar duas vezes: antes de abrir (com estimativa) e depois de
+    // abrir (com medidas reais).
+    function calcularOffsetComTamanho(marker, larguraPopup, alturaPopup) {
+      const margem = 20;
       const pontoNaTela = mapa.latLngToContainerPoint(marker.getLatLng());
       const tamanhoMapa = mapa.getSize();
 
@@ -145,15 +142,11 @@
       const espacoEsquerda = pontoNaTela.x - margem;
       const espacoDireita = tamanhoMapa.x - pontoNaTela.x - margem;
 
-      // Direção vertical: padrão é abrir pra cima. Se não couber e
-      // tiver mais espaço abaixo, inverte.
       let offsetY = 0;
       if (espacoAcima < alturaPopup && espacoAbaixo > espacoAcima) {
         offsetY = alturaPopup + 20;
       }
 
-      // Direção horizontal: centralizado por padrão. Empurra pro lado
-      // se estiver muito perto de uma borda.
       let offsetX = 0;
       const metadePopup = larguraPopup / 2;
       if (espacoEsquerda < metadePopup) {
@@ -529,12 +522,28 @@
             const marker = L.marker(m.coordenadas, { icon: icone }).addTo(grupo);
 
             marker.on('click', () => {
-              const offset = calcularOffsetPopup(marker);
-              L.popup({ offset, autoPan: false })
+              // Passo 1: abre o popup usando tamanho máximo como estimativa
+              const offsetInicial = calcularOffsetComTamanho(marker, 300, 320);
+              const popup = L.popup({ offset: offsetInicial, autoPan: false })
                 .setLatLng(marker.getLatLng())
                 .setContent(montarPopup(m))
                 .openOn(mapa);
-            });
+
+              // Passo 2: agora que o popup está no DOM, mede o tamanho real
+              // e recalcula o offset. O requestAnimationFrame garante que o
+              // navegador já aplicou layout antes de a gente medir.
+              requestAnimationFrame(() => {
+                const el = popup.getElement();
+                if (!el) return;
+
+                const larguraReal = el.offsetWidth;
+                const alturaReal = el.offsetHeight;
+                const offsetFinal = calcularOffsetComTamanho(marker, larguraReal, alturaReal);
+
+                popup.options.offset = offsetFinal;
+                popup.update();
+              });
+            });;
 
             markersPorNome[normalizar(m.nome)] = marker;
             indiceBusca.push({
