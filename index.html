@@ -128,6 +128,43 @@
       `;
     }
 
+    // Decide em que direção o popup deve abrir baseado na posição
+    // do marker na viewport atual. Retorna um L.point (offset) que
+    // posiciona o popup no lado com mais espaço livre.
+    function calcularOffsetPopup(marker) {
+      // Valores vindos do CSS. Pior caso: popup no tamanho máximo.
+      const larguraPopup = 300;
+      const alturaPopup = 320;
+      const margem = 20;  // distância mínima das bordas da viewport
+
+      const pontoNaTela = mapa.latLngToContainerPoint(marker.getLatLng());
+      const tamanhoMapa = mapa.getSize();
+
+      const espacoAcima = pontoNaTela.y - margem;
+      const espacoAbaixo = tamanhoMapa.y - pontoNaTela.y - margem;
+      const espacoEsquerda = pontoNaTela.x - margem;
+      const espacoDireita = tamanhoMapa.x - pontoNaTela.x - margem;
+
+      // Direção vertical: padrão é abrir pra cima. Se não couber e
+      // tiver mais espaço abaixo, inverte.
+      let offsetY = 0;
+      if (espacoAcima < alturaPopup && espacoAbaixo > espacoAcima) {
+        offsetY = alturaPopup + 20;
+      }
+
+      // Direção horizontal: centralizado por padrão. Empurra pro lado
+      // se estiver muito perto de uma borda.
+      let offsetX = 0;
+      const metadePopup = larguraPopup / 2;
+      if (espacoEsquerda < metadePopup) {
+        offsetX = metadePopup - espacoEsquerda;
+      } else if (espacoDireita < metadePopup) {
+        offsetX = -(metadePopup - espacoDireita);
+      }
+
+      return L.point(offsetX, offsetY);
+    }
+
 
     // =============================================================
     // PAINEL DE FILTROS
@@ -230,6 +267,7 @@
       painel.addTo(mapa);
     }
 
+
     // =============================================================
     // DEEP-LINK POR URL (?marker=nome)
     // =============================================================
@@ -257,9 +295,8 @@
       return nome ? normalizar(nome) : null;
     }
 
-    // Se a URL tem ?marker=xxx válido, centraliza o mapa nele e abre
-    // o popup. Se não tem, ou o nome não existe, não faz nada além de
-    // (eventualmente) avisar no console.
+    // Se a URL tem ?marker=xxx válido, centraliza o mapa nele e dispara
+    // o clique no marker (que cuida de calcular offset e abrir o popup).
     function abrirMarkerDaURL() {
       const alvo = lerMarkerDaURL();
       if (!alvo) return;
@@ -271,8 +308,9 @@
       }
 
       mapa.setView(marker.getLatLng(), -1);
-      marker.openPopup();
+      marker.fire('click');
     }
+
 
     // =============================================================
     // ORQUESTRAÇÃO
@@ -295,9 +333,18 @@
               console.warn(`Sem ícone registrado para marker "${m.nome}" (categoria "${m.categoria}")`);
               continue;
             }
-            const marker = L.marker(m.coordenadas, { icon: icone })
-              .bindPopup(montarPopup(m))
-              .addTo(grupo);
+            const marker = L.marker(m.coordenadas, { icon: icone }).addTo(grupo);
+
+            // Em vez de bindPopup (offset fixo), criamos o popup no
+            // clique calculando a melhor direção pra cada posição.
+            marker.on('click', () => {
+              const offset = calcularOffsetPopup(marker);
+              L.popup({ offset, autoPan: false })
+                .setLatLng(marker.getLatLng())
+                .setContent(montarPopup(m))
+                .openOn(mapa);
+            });
+
             markersPorNome[normalizar(m.nome)] = marker;
           }
           grupo.addTo(mapa);
