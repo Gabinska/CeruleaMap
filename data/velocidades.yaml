@@ -1,0 +1,56 @@
+# Tabela de velocidades de viagem para o cálculo de tempo da régua.
+# Referências extraídas do projeto ORBIS (Stanford) e adaptadas ao mundo de Cerulea.
+#
+# Campos:
+#   grupo:       rótulo da categoria (aparece como <optgroup> no dropdown)
+#   opcoes:      lista de opções de transporte dentro do grupo
+#     id:        identificador único (estável, usado internamente)
+#     nome:      rótulo exibido ao usuário
+#     kmPorDia:  velocidade média sustentável, em quilômetros por dia
+#     padrao:    opcional — marca a opção selecionada ao abrir o painel
+
+- grupo: Andando
+  opcoes:
+    - id: pe-lento
+      nome: Ritmo lento
+      kmPorDia: 20
+    - id: pe-normal
+      nome: Ritmo normal
+      kmPorDia: 30
+      padrao: true
+    - id: pe-forcada
+      nome: Marcha forçada
+      kmPorDia: 45
+
+- grupo: Cavalo
+  opcoes:
+    - id: cavalo-normal
+      nome: Ritmo normal
+      kmPorDia: 56
+    - id: cavalo-forcada
+      nome: Marcha forçada
+      kmPorDia: 80
+    - id: cavalo-revezamento
+      nome: Revezamento
+      kmPorDia: 250
+
+- grupo: Barco
+  opcoes:
+    - id: barco-cabotagem
+      nome: Cabotagem
+      kmPorDia: 60
+    - id: barco-vento
+      nome: Vento favorável
+      kmPorDia: 90
+    - id: barco-aberto
+      nome: Mar aberto
+      kmPorDia: 140
+
+- grupo: Zepelim
+  opcoes:
+    - id: zepelim-comercial
+      nome: Comercial
+      kmPorDia: 100
+    - id: zepelim-militar
+      nome: Militar
+      kmPorDia: 180

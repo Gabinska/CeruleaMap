@@ -1,42 +1,136 @@
-/* === Markers === */
+/* ==========================================================================
+   Cerulea Map — Estilos
+   ==========================================================================
+   Ordem dos blocos:
+     1. Fundamentos (variáveis, elementos base)
+     2. Markers (ícones dos lugares no mapa)
+     3. Controles do mapa (zoom)
+     4. Painéis laterais (filtros, busca)
+     5. Popups
+     6. Régua (botões, painel, elementos no mapa)
+   ========================================================================== */
 
-/* --- Escudo (compartilhado entre capital, cidade-estado e povoado) --- */
-.marker-escudo-externo { fill: #5a3f1a; stroke: #5a3f1a; }
-.marker-escudo-interno { fill: #e2b037; stroke: #5a3f1a; }
 
-/* --- Ornamentos exclusivos --- */
-.marker-coroa   { fill: #e2b037; stroke: #5a3f1a; }
-.marker-simbolo { fill: #5a3f1a; stroke: none; }
+/* =====================================================
+   Fundamentos
+   ===================================================== */
 
-/* --- Hidrografia --- */
+:root {
+  /* Paleta */
+  --pergaminho:           rgba(245, 235, 215, 0.95);
+  --pergaminho-solido:    rgb(245, 235, 215);
+  --marrom-escuro:        #5a3f1a;
+  --marrom-medio:         #3a2810;
+  --dourado:              #8b6914;
+  --dourado-claro:        #e2b037;
+  --dourado-translucido:  rgba(139, 105, 20, 0.15);
+  --cinza-info:           #8a7050;
+
+  /* Efeitos reutilizáveis */
+  --sombra-painel:        0 2px 6px rgba(0, 0, 0, 0.2);
+  --sombra-popup:         0 3px 10px rgba(0, 0, 0, 0.25);
+  --sombra-tooltip:       0 1px 3px rgba(0, 0, 0, 0.2);
+  --sombra-tooltip-total: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--marrom-medio);
+}
+
+/* Controles de formulário herdam a fonte do body */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Checkbox: estilo consistente em qualquer lugar */
+input[type="checkbox"] {
+  accent-color: var(--dourado);
+  cursor: pointer;
+  margin: 0;
+}
+
+
+/* =====================================================
+   Markers (ícones dos lugares no mapa)
+   ===================================================== */
+
+/* Escudo — compartilhado entre capital, cidade-estado e povoado */
+.marker-escudo-externo { fill: var(--marrom-escuro); stroke: var(--marrom-escuro); }
+.marker-escudo-interno { fill: var(--dourado-claro); stroke: var(--marrom-escuro); }
+
+/* Ornamentos exclusivos */
+.marker-coroa   { fill: var(--dourado-claro); stroke: var(--marrom-escuro); }
+.marker-simbolo { fill: var(--marrom-escuro); stroke: none; }
+
+/* Hidrografia */
 .marker-gota-fill  { fill: #1E4A8C; stroke: #0D2F5C; }
 .marker-gota-shine { fill: #FFFFFF; stroke: none; }
 
-/* --- Terreno --- */
+/* Terreno */
 .marker-montanha-fill { fill: #a06464; stroke: #4e2222; }
 .marker-montanha-neve { fill: #FFFFFF; stroke: none; }
 
-/* --- Rota --- */
+/* Rota */
 .marker-roda-aro   { fill: #8B3A3A; stroke: #4A1F1F; }
-.marker-roda-raios { fill: none; stroke: #4A1F1F; stroke-linecap: round; }
+.marker-roda-raios { fill: none;    stroke: #4A1F1F; stroke-linecap: round; }
 .marker-roda-cubo  { fill: #8B3A3A; stroke: #4A1F1F; }
+
+
+/* =====================================================
+   Controles de zoom (+/-)
+   ===================================================== */
+
+.leaflet-bar {
+  border: 2px solid var(--marrom-escuro) !important;
+  border-radius: 4px !important;
+  box-shadow: var(--sombra-painel) !important;
+}
+
+.leaflet-bar a {
+  background: var(--pergaminho);
+  color: var(--marrom-medio);
+  border-bottom: 1px solid var(--marrom-escuro);
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.leaflet-bar a:last-child {
+  border-bottom: none;
+}
+
+.leaflet-bar a:hover {
+  background: var(--dourado-translucido);
+  color: var(--marrom-medio);
+}
+
+.leaflet-bar a.leaflet-disabled {
+  background: rgba(200, 190, 170, 0.7);
+  color: var(--cinza-info);
+  cursor: not-allowed;
+}
+
+
 /* =====================================================
    Painel de filtros
    ===================================================== */
 
-/* Container externo — muda de forma quando fechado vs aberto */
 .painel-filtros {
-  background: rgba(245, 235, 215, 0.95);
-  border: 2px solid #5a3f1a;
+  background: var(--pergaminho);
+  border: 2px solid var(--marrom-escuro);
   border-radius: 4px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #3a2810;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  color: var(--marrom-medio);
+  box-shadow: var(--sombra-painel);
   overflow: hidden;
-  display: inline-block;  /* ← linha nova */
+  display: inline-block;
 }
 
-/* Botão do funil (aparece quando fechado) */
 .painel-filtros-toggle {
   width: 30px;
   height: 30px;
@@ -47,11 +141,11 @@
   background: transparent;
   border: none;
   padding: 0;
-  color: #3a2810;
+  color: var(--marrom-medio);
 }
 
 .painel-filtros-toggle:hover {
-  background: rgba(139, 105, 20, 0.15);  /* dourado escuro translúcido */
+  background: var(--dourado-translucido);
 }
 
 .painel-filtros-toggle svg {
@@ -59,14 +153,12 @@
   height: 18px;
 }
 
-/* Conteúdo expandido */
 .painel-filtros-conteudo {
   padding: 10px 12px;
   min-width: 180px;
-  display: none;  /* escondido por padrão */
+  display: none;
 }
 
-/* Quando o painel tem a classe .aberto, troca as visibilidades */
 .painel-filtros.aberto .painel-filtros-toggle {
   display: none;
 }
@@ -75,14 +167,13 @@
   display: block;
 }
 
-/* Cabeçalho do conteúdo expandido — tem o título e botão de fechar */
 .painel-filtros-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
   padding-bottom: 6px;
-  border-bottom: 1px solid #5a3f1a;
+  border-bottom: 1px solid var(--marrom-escuro);
 }
 
 .painel-filtros-header h4 {
@@ -100,7 +191,7 @@
   padding: 0;
   font-size: 18px;
   line-height: 1;
-  color: #5a3f1a;
+  color: var(--marrom-escuro);
   width: 20px;
   height: 20px;
   display: flex;
@@ -109,10 +200,10 @@
 }
 
 .painel-filtros-fechar:hover {
-  color: #8b6914;
+  color: var(--dourado);
 }
 
-/* Linhas de categoria (mesma coisa de antes) */
+/* Linhas de categoria */
 .painel-filtros label {
   display: flex;
   align-items: center;
@@ -124,13 +215,7 @@
 }
 
 .painel-filtros label:hover {
-  color: #8b6914;
-}
-
-.painel-filtros input[type="checkbox"] {
-  margin: 0;
-  cursor: pointer;
-  accent-color: #8b6914;
+  color: var(--dourado);
 }
 
 .painel-filtros .icone-categoria {
@@ -150,166 +235,25 @@
 .painel-filtros .contagem {
   margin-left: auto;
   font-size: 12px;
-  color: #8a7050;
+  color: var(--cinza-info);
   font-variant-numeric: tabular-nums;
 }
 
-/* =====================================================
-   Botões de zoom (+/-) — harmonizando com o painel
-   ===================================================== */
-
-/* Container externo dos botões de zoom */
-.leaflet-bar {
-  border: 2px solid #5a3f1a !important;
-  border-radius: 4px !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
-}
-
-/* Os botões em si (+ e -) */
-.leaflet-bar a {
-  background: rgba(245, 235, 215, 0.95);
-  color: #3a2810;
-  border-bottom: 1px solid #5a3f1a;  /* divisória entre + e - */
-  width: 30px;
-  height: 30px;
-  line-height: 30px;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-/* Remove a divisória do último botão (evita borda dupla com o container) */
-.leaflet-bar a:last-child {
-  border-bottom: none;
-}
-
-/* Estado hover */
-.leaflet-bar a:hover {
-  background: rgba(139, 105, 20, 0.15);  /* dourado escuro translúcido */
-  color: #3a2810;
-}
-
-/* Estado desabilitado (quando atinge zoom mínimo ou máximo) */
-.leaflet-bar a.leaflet-disabled {
-  background: rgba(200, 190, 170, 0.7);
-  color: #8a7050;
-  cursor: not-allowed;
-}
-
-/* =====================================================
-   Popups dos markers
-   ===================================================== */
-
-/* Container externo — sobrescreve o padrão branco do Leaflet */
-.leaflet-popup-content-wrapper {
-  background: rgb(245, 235, 215);     /* pergaminho, opaco pra leitura */
-  color: #3a2810;
-  border: 2px solid #5a3f1a;
-  border-radius: 4px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
-  padding: 0;                          /* padding fica no .popup-conteudo */
-}
-
-/* O conteúdo em si (o que montarPopup gera) */
-.leaflet-popup-content {
-  margin: 0;                           /* zera margem padrão do Leaflet */
-  padding: 12px 14px;
-  min-width: 200px;
-  max-width: 300px;
-  max-height: 320px;
-  overflow-y: auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-/* Nome do local — h3 do popup */
-.leaflet-popup-content h3 {
-  margin: 0 0 8px 0;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #5a3f1a;
-  font-size: 16px;
-  font-weight: 700;
-  color: #3a2810;
-}
-
-/* Etiqueta "Capital" — destaque dourado */
-.leaflet-popup-content .popup-capital {
-  display: inline-block;
-  margin: 0 0 8px 0;
-  padding: 2px 8px;
-  background: #8b6914;
-  color: rgb(245, 235, 215);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border-radius: 2px;
-}
-
-/* Linhas de atributos (Província, Governo, etc) */
-.leaflet-popup-content p {
-  margin: 0 0 4px 0;
-}
-
-/* Labels em negrito (os <strong> do popup) ficam em tom mais escuro */
-.leaflet-popup-content p strong {
-  color: #5a3f1a;
-  font-weight: 600;
-}
-
-/* Link "Ler na wiki" vira um botão */
-.leaflet-popup-content a {
-  display: inline-block;
-  margin-top: 8px;
-  padding: 6px 12px;
-  background: #8b6914;
-  color: rgb(245, 235, 215);
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 3px;
-  transition: background 0.15s ease;
-}
-
-.leaflet-popup-content a:hover {
-  background: #5a3f1a;   /* escurece no hover */
-  color: rgb(245, 235, 215);
-}
-
-/* Esconde a calda — popup fica como caixa flutuante limpa */
-.leaflet-popup-tip-container {
-  display: none;
-}
-
-/* Botão × de fechar do Leaflet */
-.leaflet-popup-close-button {
-  color: #5a3f1a !important;
-  font-size: 22px !important;
-  padding: 6px 8px !important;
-}
-
-.leaflet-popup-close-button:hover {
-  color: #8b6914 !important;
-  background: transparent !important;
-}
 
 /* =====================================================
    Painel de busca
    ===================================================== */
 
-/* Container externo — mesma "caixa pergaminho" do painel de filtros */
 .painel-busca {
-  background: rgba(245, 235, 215, 0.95);
-  border: 2px solid #5a3f1a;
+  background: var(--pergaminho);
+  border: 2px solid var(--marrom-escuro);
   border-radius: 4px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #3a2810;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  color: var(--marrom-medio);
+  box-shadow: var(--sombra-painel);
   overflow: hidden;
   display: inline-block;
 }
 
-/* Botão de lupa (estado fechado) */
 .painel-busca-toggle {
   width: 30px;
   height: 30px;
@@ -320,11 +264,11 @@
   background: transparent;
   border: none;
   padding: 0;
-  color: #3a2810;
+  color: var(--marrom-medio);
 }
 
 .painel-busca-toggle:hover {
-  background: rgba(139, 105, 20, 0.15);
+  background: var(--dourado-translucido);
 }
 
 .painel-busca-toggle svg {
@@ -332,7 +276,6 @@
   height: 18px;
 }
 
-/* Conteúdo expandido (input + lista de resultados) */
 .painel-busca-conteudo {
   display: none;
   min-width: 260px;
@@ -346,7 +289,7 @@
   display: block;
 }
 
-/* Linha do input — contém o campo de texto e o × de fechar */
+/* Linha do input (campo + ×) */
 .painel-busca-linha {
   display: flex;
   align-items: center;
@@ -357,15 +300,14 @@
   flex: 1;
   border: none;
   background: transparent;
-  font-family: inherit;
   font-size: 14px;
-  color: #3a2810;
+  color: var(--marrom-medio);
   padding: 4px 6px;
   outline: none;
 }
 
 .painel-busca-input::placeholder {
-  color: #8a7050;
+  color: var(--cinza-info);
   font-style: italic;
 }
 
@@ -376,7 +318,7 @@
   padding: 0;
   font-size: 18px;
   line-height: 1;
-  color: #5a3f1a;
+  color: var(--marrom-escuro);
   width: 20px;
   height: 20px;
   display: flex;
@@ -386,18 +328,18 @@
 }
 
 .painel-busca-fechar:hover {
-  color: #8b6914;
+  color: var(--dourado);
 }
 
 /* Lista de resultados */
 .painel-busca-resultados {
-  border-top: 1px solid #5a3f1a;
+  border-top: 1px solid var(--marrom-escuro);
   max-height: 320px;
   overflow-y: auto;
 }
 
 .painel-busca-resultados:empty {
-  display: none;  /* esconde a borda quando não há resultados */
+  display: none;
 }
 
 .resultado-item {
@@ -416,8 +358,8 @@
 
 .resultado-item:hover,
 .resultado-item.destacado {
-  background: rgba(139, 105, 20, 0.15);
-  color: #5a3f1a;
+  background: var(--dourado-translucido);
+  color: var(--marrom-escuro);
 }
 
 .resultado-item .icone-categoria {
@@ -440,7 +382,7 @@
 
 .resultado-item .categoria-label {
   font-size: 11px;
-  color: #8a7050;
+  color: var(--cinza-info);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -449,8 +391,335 @@
 .resultado-mais {
   padding: 6px 10px;
   font-size: 12px;
-  color: #8a7050;
+  color: var(--cinza-info);
   font-style: italic;
   text-align: center;
   border-top: 1px solid rgba(90, 63, 26, 0.15);
+}
+
+
+/* =====================================================
+   Popups dos markers
+   ===================================================== */
+
+.leaflet-popup-content-wrapper {
+  background: var(--pergaminho-solido);
+  color: var(--marrom-medio);
+  border: 2px solid var(--marrom-escuro);
+  border-radius: 4px;
+  box-shadow: var(--sombra-popup);
+  padding: 0;
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  padding: 12px 14px;
+  min-width: 200px;
+  max-width: 300px;
+  max-height: 320px;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.leaflet-popup-content h3 {
+  margin: 0 0 8px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--marrom-escuro);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--marrom-medio);
+}
+
+.leaflet-popup-content .popup-capital {
+  display: inline-block;
+  margin: 0 0 8px 0;
+  padding: 2px 8px;
+  background: var(--dourado);
+  color: var(--pergaminho-solido);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+.leaflet-popup-content p {
+  margin: 0 0 4px 0;
+}
+
+.leaflet-popup-content p strong {
+  color: var(--marrom-escuro);
+  font-weight: 600;
+}
+
+.leaflet-popup-content a {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: var(--dourado);
+  color: var(--pergaminho-solido);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 3px;
+  transition: background 0.15s ease;
+}
+
+.leaflet-popup-content a:hover {
+  background: var(--marrom-escuro);
+  color: var(--pergaminho-solido);
+}
+
+/* Esconde a calda — popup fica como caixa flutuante */
+.leaflet-popup-tip-container {
+  display: none;
+}
+
+.leaflet-popup-close-button {
+  color: var(--marrom-escuro) !important;
+  font-size: 22px !important;
+  padding: 6px 8px !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: var(--dourado) !important;
+  background: transparent !important;
+}
+
+
+/* =====================================================
+   Régua — botão principal (sempre visível)
+   ===================================================== */
+
+.painel-regua-botao {
+  background: var(--pergaminho);
+  border: 2px solid var(--marrom-escuro);
+  border-radius: 4px;
+  box-shadow: var(--sombra-painel);
+  overflow: hidden;
+  display: inline-block;
+}
+
+.painel-regua-botao.ativo .painel-regua-toggle {
+  background: var(--dourado);
+  color: var(--pergaminho);
+}
+
+.painel-regua-botao.ativo .painel-regua-toggle:hover {
+  background: var(--marrom-escuro);
+}
+
+
+/* =====================================================
+   Régua — botão do esquadro + painel de medições
+   ===================================================== */
+
+.painel-regua {
+  background: var(--pergaminho);
+  border: 2px solid var(--marrom-escuro);
+  border-radius: 4px;
+  color: var(--marrom-medio);
+  box-shadow: var(--sombra-painel);
+  overflow: hidden;
+  display: none;
+}
+
+.painel-regua.visivel {
+  display: inline-block;
+}
+
+.painel-regua-toggle {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--marrom-medio);
+}
+
+.painel-regua-toggle:hover {
+  background: var(--dourado-translucido);
+}
+
+.painel-regua-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.painel-regua-conteudo {
+  padding: 10px 12px;
+  min-width: 200px;
+  display: none;
+}
+
+.painel-regua.aberto .painel-regua-toggle {
+  display: none;
+}
+
+.painel-regua.aberto .painel-regua-conteudo {
+  display: block;
+}
+
+.painel-regua-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--marrom-escuro);
+}
+
+.painel-regua-header h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.painel-regua-fechar {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--marrom-escuro);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.painel-regua-fechar:hover {
+  color: var(--dourado);
+}
+
+.painel-regua-label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.painel-regua-select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 4px 6px;
+  background: var(--pergaminho);
+  border: 1px solid var(--marrom-escuro);
+  border-radius: 3px;
+  color: var(--marrom-medio);
+  font-size: 13px;
+}
+
+.painel-regua-select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 4px 6px;
+  background: var(--pergaminho);
+  border: 1px solid var(--marrom-escuro);
+  border-radius: 3px;
+  color: var(--marrom-medio);
+  font-size: 13px;
+}
+
+.painel-regua-select:disabled {
+  color: var(--cinza-info);
+  cursor: wait;        /* antes era not-allowed; agora é "aguarde" */
+}
+
+.painel-regua-select optgroup {
+  font-weight: 600;
+  color: var(--marrom-escuro);
+  font-style: normal;
+}
+
+.painel-regua-select option {
+  font-weight: normal;
+  color: var(--marrom-medio);
+  padding: 2px 6px;
+}
+
+.painel-regua-info {
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.painel-regua-info > div + div {
+  margin-top: 4px;
+}
+
+.painel-regua-info strong {
+  color: var(--marrom-escuro);
+  font-weight: 600;
+}
+
+.painel-regua-limpar {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  background: var(--dourado);
+  color: var(--pergaminho);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.15s ease;
+}
+
+.painel-regua-limpar:hover {
+  background: var(--marrom-escuro);
+}
+
+
+/* =====================================================
+   Régua — elementos desenhados no mapa
+   ===================================================== */
+
+/* Ícone dos pontos — tira estilo padrão do divIcon */
+.ponto-regua-icone {
+  background: transparent;
+  border: none;
+}
+
+/* Tooltip parcial — discreta, no meio de cada segmento */
+.tooltip-regua-parcial {
+  background: var(--pergaminho);
+  color: var(--marrom-medio);
+  border: 1px solid var(--marrom-escuro);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  box-shadow: var(--sombra-tooltip);
+  white-space: nowrap;
+}
+
+/* Tooltip de total — destacada, no último ponto */
+.tooltip-regua-total {
+  background: var(--dourado);
+  color: var(--pergaminho);
+  border: 1px solid var(--marrom-escuro);
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: var(--sombra-tooltip-total);
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+
+/* Remove a setinha padrão do Leaflet nas tooltips da régua */
+.tooltip-regua-parcial::before,
+.tooltip-regua-total::before {
+  display: none;
 }
