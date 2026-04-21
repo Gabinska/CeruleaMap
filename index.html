@@ -7,7 +7,7 @@
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-  <!-- Seu CSS -->
+  <!-- CSS do projeto -->
   <link rel="stylesheet" href="css/styles.css">
 
   <style>
@@ -28,19 +28,23 @@
 <body>
   <div id="mapa"></div>
 
-  <!-- Leaflet JS -->
+  <!-- Bibliotecas externas -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- js-yaml (parser de YAML) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
 
-  <!-- Seus markers -->
+  <!-- Ícones dos markers (SVGs + getIcone) -->
   <script src="js/markers.js"></script>
 
   <script>
+    // =============================================================
+    // CONFIGURAÇÃO DO MAPA
+    // =============================================================
+
     const largura = 3000;
     const altura = 4000;
     const limites = [[0, 0], [altura, largura]];
+
+    const WIKI_BASE = 'https://gabinska.github.io/Cerulea/';
 
     const mapa = L.map('mapa', {
       crs: L.CRS.Simple,
@@ -52,14 +56,23 @@
       maxBoundsViscosity: 1.0
     });
 
-    // Imagem do mapa
     L.imageOverlay('assets/mapa-cerulea.png', limites).addTo(mapa);
 
-    // Enquadramento inicial
+    // Enquadramento inicial: mapa cabe na tela, e esse zoom vira o piso.
     mapa.fitBounds(limites);
     mapa.setMinZoom(mapa.getZoom());
 
-    // Ajuste dinâmico ao redimensionar
+    // Guarda os layerGroups por categoria — preenchido em carregarTudo(),
+    // lido depois em construirFiltros().
+    const grupos = {};
+
+
+    // =============================================================
+    // COMPORTAMENTO DO MAPA
+    // =============================================================
+
+    // Recalcula o zoom mínimo quando a janela redimensiona, preservando a
+    // view atual se o usuário já estava com zoom maior que o novo piso.
     function recalcularMinZoom() {
       const zoomAtual = mapa.getZoom();
       const centroAtual = mapa.getCenter();
@@ -75,6 +88,11 @@
 
     mapa.on('resize', recalcularMinZoom);
 
+
+    // =============================================================
+    // CARREGAMENTO DE DADOS (YAML)
+    // =============================================================
+
     // Baixa um YAML e devolve o objeto JS parseado.
     async function carregarYAML(caminho) {
       const resposta = await fetch(caminho);
@@ -85,17 +103,18 @@
       return jsyaml.load(texto);
     }
 
-    // Carrega uma categoria e devolve { id, markers }.
+    // Carrega os markers de uma categoria e devolve { id, markers }.
     async function carregarCategoria(categoria) {
       const markers = await carregarYAML(`data/${categoria.arquivo}`);
       return { id: categoria.id, markers };
     }
 
-    const grupos = {};
 
+    // =============================================================
+    // RENDERIZAÇÃO DE MARKERS
+    // =============================================================
 
-    const WIKI_BASE = 'https://gabinska.github.io/Cerulea/';
-
+    // Monta o HTML do popup que abre ao clicar num marker.
     function montarPopup(m) {
       return `
         <h3>${m.nome}</h3>
@@ -109,35 +128,145 @@
       `;
     }
 
-    // Orquestra tudo: lê o índice, carrega categorias em paralelo, cria markers.
-    async function carregarTudo() {
-          try {
-            const categorias = await carregarYAML('data/categorias.yaml');
-            const resultados = await Promise.all(
-              categorias.map(cat => carregarCategoria(cat))
-            );
 
-            for (const { id, markers } of resultados) {
-              const grupo = L.layerGroup();
-              for (const m of markers) {
-                const icone = getIcone(m);
-                if (!icone) {
-                  console.warn(`Sem ícone registrado para marker "${m.nome}" (categoria "${m.categoria}")`);
-                  continue;
-                }
-                L.marker(m.coordenadas, { icon: icone })
-                  .bindPopup(montarPopup(m))
-                  .addTo(grupo);
-              }
+    // =============================================================
+    // PAINEL DE FILTROS
+    // =============================================================
+
+    // SVG do funil — inline pra ficar auto-contido, sem dependência externa.
+    const svgFunil = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M3 4h18v2l-7 8v6l-4 2v-8L3 6V4z"/>
+    </svg>`;
+
+    // Devolve o SVG apropriado pra miniatura de uma categoria no painel.
+    // Pra cidade-estado, mostra o ícone não-capital (representa a categoria,
+    // não uma cidade específica).
+    function getIconeMiniatura(categoriaId) {
+      const fake = { categoria: categoriaId };
+      const icone = window.getIcone(fake);
+      return icone ? icone.options.html : '';
+    }
+
+    // Monta o painel colapsável de filtros no canto superior-esquerdo.
+    function construirFiltros(categorias) {
+      const painel = L.control({ position: 'topleft' });
+
+      painel.onAdd = function() {
+        const div = L.DomUtil.create('div', 'painel-filtros');
+
+        // --- Botão do funil (estado fechado) ---
+        const toggle = document.createElement('button');
+        toggle.className = 'painel-filtros-toggle';
+        toggle.title = 'Filtros';
+        toggle.setAttribute('aria-label', 'Abrir filtros');
+        toggle.innerHTML = svgFunil;
+        toggle.addEventListener('click', () => {
+          div.classList.add('aberto');
+        });
+        div.appendChild(toggle);
+
+        // --- Conteúdo expandido ---
+        const conteudo = document.createElement('div');
+        conteudo.className = 'painel-filtros-conteudo';
+
+        // Cabeçalho (título + botão de fechar)
+        const header = document.createElement('div');
+        header.className = 'painel-filtros-header';
+        header.innerHTML = '<h4>Filtros</h4>';
+
+        const fechar = document.createElement('button');
+        fechar.className = 'painel-filtros-fechar';
+        fechar.textContent = '×';
+        fechar.title = 'Fechar';
+        fechar.setAttribute('aria-label', 'Fechar filtros');
+        fechar.addEventListener('click', () => {
+          div.classList.remove('aberto');
+        });
+        header.appendChild(fechar);
+        conteudo.appendChild(header);
+
+        // Uma linha por categoria
+        for (const cat of categorias) {
+          const grupo = grupos[cat.id];
+          if (!grupo) continue;
+
+          const label = document.createElement('label');
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = true;
+          checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
               grupo.addTo(mapa);
-              grupos[id] = grupo;
+            } else {
+              mapa.removeLayer(grupo);
             }
-          } catch (erro) {
-            console.error('Falha ao carregar markers:', erro);
-          }
+          });
+
+          const iconeWrapper = document.createElement('span');
+          iconeWrapper.className = 'icone-categoria';
+          iconeWrapper.innerHTML = getIconeMiniatura(cat.id);
+
+          const nome = document.createElement('span');
+          nome.textContent = cat.nome;
+
+          const contagem = document.createElement('span');
+          contagem.className = 'contagem';
+          contagem.textContent = `(${grupo.getLayers().length})`;
+
+          label.append(checkbox, iconeWrapper, nome, contagem);
+          conteudo.appendChild(label);
         }
 
-        carregarTudo();
+        div.appendChild(conteudo);
+
+        // Impede que cliques/scrolls no painel afetem o mapa
+        L.DomEvent.disableClickPropagation(div);
+        L.DomEvent.disableScrollPropagation(div);
+
+        return div;
+      };
+
+      painel.addTo(mapa);
+    }
+
+
+    // =============================================================
+    // ORQUESTRAÇÃO
+    // =============================================================
+
+    // Lê o índice de categorias, carrega cada arquivo de dados em paralelo,
+    // cria os markers em seus grupos, e monta o painel de filtros.
+    async function carregarTudo() {
+      try {
+        const categorias = await carregarYAML('data/categorias.yaml');
+        const resultados = await Promise.all(
+          categorias.map(cat => carregarCategoria(cat))
+        );
+
+        for (const { id, markers } of resultados) {
+          const grupo = L.layerGroup();
+          for (const m of markers) {
+            const icone = getIcone(m);
+            if (!icone) {
+              console.warn(`Sem ícone registrado para marker "${m.nome}" (categoria "${m.categoria}")`);
+              continue;
+            }
+            L.marker(m.coordenadas, { icon: icone })
+              .bindPopup(montarPopup(m))
+              .addTo(grupo);
+          }
+          grupo.addTo(mapa);
+          grupos[id] = grupo;
+        }
+
+        construirFiltros(categorias);
+      } catch (erro) {
+        console.error('Falha ao carregar markers:', erro);
+      }
+    }
+
+    carregarTudo();
   </script>
 </body>
 </html>

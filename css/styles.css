@@ -1,6 +1,4 @@
-/* =====================================================
-   Markers
-   ===================================================== */
+/* === Markers === */
 
 /* --- Escudo (compartilhado entre capital, cidade-estado e povoado) --- */
 .marker-escudo-externo { fill: #5a3f1a; stroke: #5a3f1a; }
@@ -22,3 +20,177 @@
 .marker-roda-aro   { fill: #8B3A3A; stroke: #4A1F1F; }
 .marker-roda-raios { fill: none; stroke: #4A1F1F; stroke-linecap: round; }
 .marker-roda-cubo  { fill: #8B3A3A; stroke: #4A1F1F; }
+/* =====================================================
+   Painel de filtros
+   ===================================================== */
+
+/* Container externo — muda de forma quando fechado vs aberto */
+.painel-filtros {
+  background: rgba(245, 235, 215, 0.95);
+  border: 2px solid #5a3f1a;
+  border-radius: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #3a2810;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: inline-block;  /* ← linha nova */
+}
+
+/* Botão do funil (aparece quando fechado) */
+.painel-filtros-toggle {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #3a2810;
+}
+
+.painel-filtros-toggle:hover {
+  background: rgba(139, 105, 20, 0.15);  /* dourado escuro translúcido */
+}
+
+.painel-filtros-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Conteúdo expandido */
+.painel-filtros-conteudo {
+  padding: 10px 12px;
+  min-width: 180px;
+  display: none;  /* escondido por padrão */
+}
+
+/* Quando o painel tem a classe .aberto, troca as visibilidades */
+.painel-filtros.aberto .painel-filtros-toggle {
+  display: none;
+}
+
+.painel-filtros.aberto .painel-filtros-conteudo {
+  display: block;
+}
+
+/* Cabeçalho do conteúdo expandido — tem o título e botão de fechar */
+.painel-filtros-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #5a3f1a;
+}
+
+.painel-filtros-header h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.painel-filtros-fechar {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  color: #5a3f1a;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.painel-filtros-fechar:hover {
+  color: #8b6914;
+}
+
+/* Linhas de categoria (mesma coisa de antes) */
+.painel-filtros label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+  user-select: none;
+  font-size: 14px;
+}
+
+.painel-filtros label:hover {
+  color: #8b6914;
+}
+
+.painel-filtros input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+  accent-color: #8b6914;
+}
+
+.painel-filtros .icone-categoria {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.painel-filtros .icone-categoria svg {
+  width: 100%;
+  height: 100%;
+}
+
+.painel-filtros .contagem {
+  margin-left: auto;
+  font-size: 12px;
+  color: #8a7050;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =====================================================
+   Botões de zoom (+/-) — harmonizando com o painel
+   ===================================================== */
+
+/* Container externo dos botões de zoom */
+.leaflet-bar {
+  border: 2px solid #5a3f1a !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Os botões em si (+ e -) */
+.leaflet-bar a {
+  background: rgba(245, 235, 215, 0.95);
+  color: #3a2810;
+  border-bottom: 1px solid #5a3f1a;  /* divisória entre + e - */
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Remove a divisória do último botão (evita borda dupla com o container) */
+.leaflet-bar a:last-child {
+  border-bottom: none;
+}
+
+/* Estado hover */
+.leaflet-bar a:hover {
+  background: rgba(139, 105, 20, 0.15);  /* dourado escuro translúcido */
+  color: #3a2810;
+}
+
+/* Estado desabilitado (quando atinge zoom mínimo ou máximo) */
+.leaflet-bar a.leaflet-disabled {
+  background: rgba(200, 190, 170, 0.7);
+  color: #8a7050;
+  cursor: not-allowed;
+}
