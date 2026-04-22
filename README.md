@@ -1,55 +1,21 @@
-# CeruleaMap — Escopo do Projeto
-
-## Visão geral
-
-Mapa interativo do mundo de Cerulea para a campanha *Fragmentos de um Sonho Cerúleo*, hospedado em GitHub Pages, integrado bidirecionalmente com a wiki da campanha (feita em Quartz). O mapa serve jogadores e GM como ferramenta de consulta e navegação — tipo "Google Maps" do cenário.
-
-**URL em produção:** https://gabinska.github.io/CeruleaMap/
-
----
-
-## Stack técnica
-
-- **Leaflet.js** (via CDN) — biblioteca de mapas, usando modo `CRS.Simple` (imagem como mundo, coordenadas em pixels).
-- **js-yaml** (via CDN) — parser de YAML no navegador.
-- **HTML + CSS + JavaScript puro** — sem frameworks, sem build step.
-- **GitHub Pages** — hospedagem estática.
-- **VS Code** — editor.
-
-### Decisões deliberadas
-
-- **Sem frameworks (React, Vue, etc.):** projeto pequeno, não justifica complexidade adicional.
-- **Sem build step:** salvar arquivo, atualizar navegador, ver mudança. Zero intermediários.
-- **CDN em vez de bibliotecas locais:** simplicidade de deploy, sem instalação.
-
----
-
-## Estrutura de arquivos
-
-```
-CeruleaMap/
-├── index.html              # HTML + JS principal (seções organizadas com cabeçalhos)
-├── calibrar.html           # Ferramenta auxiliar de calibração de coordenadas
-├── css/
-│   └── styles.css          # Estilos de markers, popups, painéis e botões
-├── js/
-│   └── markers.js          # SVGs dos ícones por categoria + getIcone()
-├── assets/
-│   ├── mapa-cerulea.png    # 3000 × 4000 px, versão sem nomes e sem bússola
-│   └── mapa-cerulea_names.png  # versão com nomes, usada pra calibrar coordenadas
-├── data/
-│   ├── categorias.yaml     # índice: quais arquivos de dados carregar
-│   ├── cidades-estado.yaml
-│   ├── hidrografia.yaml
-│   ├── terreno.yaml
-│   ├── rotas.yaml
-│   └── povoados.yaml       # estrutura pronta, conteúdo vem em V2
-└── README.md
-```
-
 ### Por que múltiplos YAMLs por categoria
 
 Um arquivo por categoria de marker. Permite editar só um conjunto de markers por vez sem rolar por uma lista enorme. O `categorias.yaml` funciona como índice — o JS lê ele primeiro pra saber quais outros arquivos carregar. Adicionar categoria nova = criar arquivo + adicionar linha no índice. Não mexe no HTML.
+
+### Por que múltiplos arquivos JS
+
+Cada módulo tem uma responsabilidade clara e uma API pequena exposta via `window`. Padrão consistente em todos:
+
+```javascript
+Dados.carregarYAML(caminho) -> Promise<any>
+Popup.ligarMarker(marker, dados)
+Regua.inicializar(mapa)
+Filtros.registrar(categoria, grupo) / construir()
+Busca.registrar(marker, dados) / construir()
+DeepLink.registrar(marker, dados) / abrirSeHouver()
+```
+
+O `index.html` vira "main": configura o mapa, inicializa módulos, carrega dados e orquestra o fluxo. Nenhuma lógica de feature vive lá.
 
 ---
 
@@ -85,7 +51,7 @@ Arquivo `povoados.yaml` existe e o ícone está implementado (escudo sem sol e s
 
 ## Formato dos dados
 
-Cada arquivo YAML contém uma lista de markers. Campos do marker:
+Cada arquivo YAML de categoria contém uma lista de markers. Campos do marker:
 
 ```yaml
 - nome: Miras
@@ -109,6 +75,25 @@ Cada arquivo YAML contém uma lista de markers. Campos do marker:
 - Batalhão + comandante *(só cidades)*
 - População *(opcional — só aparece se preenchida)*
 - Botão dourado "Ler na wiki"
+
+### Formato de `velocidades.yaml`
+
+Tabela agrupada por modo de transporte, usada pelo dropdown da régua:
+
+```yaml
+- grupo: Andando
+  opcoes:
+    - id: pe-lento
+      nome: Ritmo lento
+      kmPorDia: 20
+    - id: pe-normal
+      nome: Ritmo normal
+      kmPorDia: 30
+      padrao: true            # opcional — uma opção marcada = default do dropdown
+    - id: pe-forcada
+      nome: Marcha forçada
+      kmPorDia: 45
+```
 
 ---
 
@@ -178,6 +163,24 @@ Cada arquivo YAML contém uma lista de markers. Campos do marker:
 - **Resultado mostra:** ícone da categoria + nome + etiqueta da categoria em caps
 - Selecionar um resultado: centraliza no marker, abre popup, limpa campo, fecha painel
 
+### Régua de medição
+- **Dois botões na cascata esquerda:** régua (📏) liga/desliga o modo, esquadro (📐) abre/fecha o painel lateral de medições. Esquadro só aparece com modo ativo.
+- **Adição de pontos:** clique esquerdo no mapa cria um ponto bronze com borda branca. Clique em cima de um marker de cidade/terreno/rio cria ponto exatamente naquela posição.
+- **Linha de medição:** polyline branca conectando os pontos na ordem de criação.
+- **Drag:** arrastar um ponto reposiciona, com linha e tooltips atualizando em tempo real.
+- **Undo:** clique direito em qualquer lugar desfaz o último ponto adicionado (não abre menu de contexto).
+- **Tooltips na linha:** tooltip pergaminho discreta em cada segmento mostrando distância parcial. Com 3+ pontos, tooltip dourada adicional "Total: X km" ancorada no último ponto.
+- **Painel lateral:**
+  - Dropdown de meio de transporte com 11 opções em 4 grupos (a pé, cavalo, barco, zepelim) carregadas de `velocidades.yaml`.
+  - Padrão "Ritmo normal, a pé" (30 km/dia).
+  - Distância total e tempo de viagem formatado ("18h" / "3 dias e 5h" / "12 dias").
+  - Botão Limpar zera a medição mantendo o modo ativo.
+- **Limites respeitados:** cliques e drag fora do mapa são ignorados.
+- **Convivência com outros cliques:** com modo régua ativo, clicar num marker vira ponto da régua ao invés de abrir popup.
+- **Z-order correto via panes customizados:** linhas abaixo dos markers, pontos acima das linhas, tooltips acima dos markers (mas abaixo dos popups).
+- **Escala:** 150 km = 312 px na imagem 3000×4000. Constante `KM_POR_PIXEL = 150 / 312` no `regua.js`.
+- **Velocidades:** baseadas no projeto ORBIS (Stanford) — simulação histórica de viagens no Império Romano. Adaptadas ao mundo de Cerulea.
+
 ### URLs compartilháveis
 - `?marker=lazus` abre o mapa já centralizado e com popup do marker aberto
 - Nome normalizado, tolerante a maiúscula/minúscula e acento
@@ -192,24 +195,70 @@ Cada arquivo YAML contém uma lista de markers. Campos do marker:
 
 ## Arquitetura do código
 
+### Módulos JS
+
+Cada arquivo é um IIFE (`(function () { ... })()`) que expõe uma API mínima em `window`. Estado interno fica encapsulado no IIFE. Padrão de API consistente:
+
+- **`inicializar(mapa, config?)`** — chamado uma vez. Recebe referência ao mapa.
+- **`registrar(...)`** — chamado no loop da orquestração pra cada marker ou categoria.
+- **`construir()` ou `abrirSeHouver()`** — chamado no final, monta UI ou executa lógica de startup.
+
+Exemplos:
+
+```javascript
+// Carregamento de dados
+Dados.carregarYAML('data/categorias.yaml') -> Promise
+Dados.normalizar('Forte Elpída')             -> 'forte-elpida'
+
+// Popups
+Popup.inicializar(mapa, { wikiBase: '...' })
+Popup.ligarMarker(marker, dados)             // registra o clique
+
+// Régua
+Regua.inicializar(mapa)
+Regua.configurarVelocidades(dados)            // ativa cálculo de tempo
+Regua.modoAtivo()                             // outros módulos consultam
+
+// Filtros
+Filtros.inicializar(mapa)
+Filtros.registrar(categoria, grupoLayer)
+Filtros.construir()
+```
+
 ### Organização do `index.html`
 
-O `<script>` é dividido em seções demarcadas por cabeçalhos comentados, na ordem "primeiro declara, depois usa":
+Script inline dividido em seções demarcadas por cabeçalhos comentados:
 
-1. **Configuração do mapa** — constantes, instância do Leaflet, overlay da imagem, zoom inicial
-2. **Comportamento do mapa** — handler de resize
-3. **Carregamento de dados (YAML)** — `carregarYAML`, `carregarCategoria`
-4. **Renderização de markers** — `montarPopup`, `calcularOffsetComTamanho`
-5. **Painel de filtros** — `construirFiltros`, `getIconeMiniatura`, SVG do funil
-6. **Deep-link por URL** — `normalizar`, `lerMarkerDaURL`, `abrirMarkerDaURL`
-7. **Busca** — `construirBusca`, `buscarMarkers`, SVG da lupa
-8. **Orquestração** — `carregarTudo`, chamada final
+1. **Configuração do mapa** — constantes, instância do Leaflet, overlay, zoom inicial.
+2. **Comportamento do mapa** — handler de resize.
+3. **Inicialização dos módulos** — todos os `Modulo.inicializar(mapa)` em sequência.
+4. **Orquestração** — `carregarTudo()` lê categorias, cria markers no loop, registra em cada módulo, dispara `construir()`.
 
-### Separação em arquivos
+Nenhuma lógica de feature vive aqui. Tudo está nos módulos.
 
-- **`index.html`** — configuração do mapa e toda a lógica da aplicação
-- **`js/markers.js`** — SVGs dos ícones, `L.divIcon` configurados, função `getIcone` exportada via `window`
-- **`css/styles.css`** — estilos de markers, popups, painéis e botões de zoom
+### Organização de um módulo (exemplo: `regua.js`)
+
+Dentro do IIFE, seções em ordem "primeiro declara, depois usa":
+
+1. **Constantes** — escala, cores, tamanhos.
+2. **Estado interno** — variáveis mutáveis.
+3. **API pública** — `inicializar`, `modoAtivo`, `configurarVelocidades`.
+4. **Construção da UI** — cria controles Leaflet, popula DOM.
+5. **Alternância de modo e painel** — `entrarNoModo`, `sairDoModo`, etc.
+6. **Medição** — `adicionarPonto`, `desfazer`, `redesenharLinha`, `redesenharTooltips`.
+7. **Painel** — `atualizarPainel`, `formatarTempo`.
+8. **Cálculos geométricos** — distância, ponto médio.
+9. **Ícones SVG** — strings inline.
+10. **Exposição global** — `window.Regua = { ... }`.
+
+---
+
+## Princípios de trabalho
+
+- **Medir antes de teorizar:** quando comportamento diverge do esperado, o console decide, não a intuição.
+- **Iteração pequena:** cada mudança é testada antes da próxima. Previne acúmulo de bugs.
+- **Resistir a overengineering:** escolher a solução mais simples que resolve o problema. Complexidade só entra quando a simples provar insuficiente.
+- **Commits temáticos:** cada commit resolve uma coisa. Facilita reverter e ler histórico.
 
 ---
 
@@ -218,23 +267,21 @@ O `<script>` é dividido em seções demarcadas por cabeçalhos comentados, na o
 - **Coordenadas no Leaflet:** formato `[y, x]`, não `[x, y]`. Herança da convenção geográfica (latitude antes de longitude).
 - **Sistema de zoom:** escala logarítmica em torno de 0. Zoom 0 = imagem em tamanho real. Cada passo dobra/divide.
 - **Dimensões do mapa:** 3000 (largura) × 4000 (altura) pixels.
-- **Escala de distância:** 150 km = X pixels (a medir na barra de escala original quando implementar a régua).
+- **Escala de distância:** 150 km = 312 px (medido na barra de escala do mapa original). Constante `KM_POR_PIXEL = 150 / 312` em `regua.js`.
 - **Classes CSS de marker:** prefixo `marker-` como namespace pra evitar conflitos.
+- **Classes CSS dos painéis:** prefixo `painel-{nome}-` (ex: `painel-filtros-toggle`, `painel-regua-conteudo`) pra agrupar por feature.
+- **Panes customizados da régua:** `reguaLinhas` (z 410), `reguaPontos` (z 420), `reguaTooltips` (z 630). Controlam z-order em relação aos panes padrão do Leaflet (overlayPane 400, markerPane 600, popupPane 700).
+- **Variáveis CSS:** paleta em `:root` — `--pergaminho`, `--marrom-escuro`, `--marrom-medio`, `--dourado`, `--dourado-claro`, `--cinza-info`, `--dourado-translucido`. Trocar um valor aqui repagina o projeto inteiro.
 
 ---
 
 ## Pendências — V2 e além
 
 ### Funcionalidades de mapa
-- **Régua de medição** com três níveis:
-  1. Régua simples entre dois pontos
-  2. Rota quebrada com múltiplos pontos (soma segmentos)
-  3. Estimativa de tempo de viagem (a pé, cavalo, barco)
-  - Calibrar escala pela barra de 150 km do mapa original
-  - Definir velocidades de referência por modo (decisão de campanha)
 - **Rotas terrestres** entre cidades (hoje só a Rota Serena marítima)
 - **Markers de povoado** populados (infra já pronta)
 - **Possíveis markers de lore** — ruínas, POIs de aventura
+- **Modificador de terreno na régua** *(opcional)* — atualmente a velocidade é constante por modo. Futuro: seletor ou peso por tipo de terreno (estrada, floresta, montanha, deserto), talvez seguindo o modelo ORBIS de modificadores por bioma.
 
 ### Refinamentos visuais
 - Painel de filtros mais compacto no mobile (consome muita largura quando aberto)
@@ -243,5 +290,5 @@ O `<script>` é dividido em seções demarcadas por cabeçalhos comentados, na o
 ### Conteúdo
 - Coordenadas precisas já coletadas pros 14 markers de cidade-estado e pros markers de geografia (feito via `calibrar.html`).
 - Valores de população das cidades (já preenchidos em todas as 14).
-- Velocidades de referência pros modais de viagem *(a definir antes da régua)*.
+- Velocidades calibradas em `velocidades.yaml` (11 modos de transporte).
 - Páginas correspondentes na wiki Quartz (criadas conforme a campanha avança; mapa funciona mesmo se a wiki estiver incompleta).
