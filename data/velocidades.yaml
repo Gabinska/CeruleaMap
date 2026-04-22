@@ -50,7 +50,7 @@
   opcoes:
     - id: zepelim-comercial
       nome: Comercial
-      kmPorDia: 100
+      kmPorDia: 1800
     - id: zepelim-militar
       nome: Militar
-      kmPorDia: 180
+      kmPorDia: 2400
